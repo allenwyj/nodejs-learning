@@ -8,6 +8,10 @@ const app = express();
 // MIDDLEWARES
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
+
+  app.get('/', (req, res) => {
+    res.send('API is running...');
+  });
 }
 
 // allows to access req.body data from the request
