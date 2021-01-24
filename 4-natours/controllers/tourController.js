@@ -1,5 +1,14 @@
 const Tour = require('../models/tourModel');
 
+exports.aliasTopTours = async (req, res, next) => {
+  // prefilling limit, sort, fields
+  req.query.limit = '5';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
+
+  next();
+};
+
 exports.getAllTours = async (req, res) => {
   try {
     // BUILD QUERY
@@ -9,7 +18,7 @@ exports.getAllTours = async (req, res) => {
     // Because these are the functions that we want to apply, but
     // in MongoDB, they aren't properties in the documents.
     // So, we need to exclude them first in order to fetch data.
-    const excludeFields = ['page', 'sort', 'limit', 'field'];
+    const excludeFields = ['page', 'sort', 'limit', 'fields'];
 
     // delete the property from the obj
     excludeFields.forEach((el) => delete queryObj[el]);
