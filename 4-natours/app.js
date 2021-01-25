@@ -1,5 +1,8 @@
 const express = require('express');
 const morgan = require('morgan');
+
+const AppError = require('./utils/appError');
+const globalErrorHandler = require('./controllers/errorController');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
 
@@ -19,12 +22,6 @@ if (process.env.NODE_ENV === 'development') {
 // body-parser: Parse incoming request bodies
 app.use(express.json());
 
-// defining the custom middleware
-app.use((req, res, next) => {
-  console.log('Middleware here!');
-  next();
-});
-
 app.use((req, res, next) => {
   // add requestTime into request.
   req.requestTime = new Date().toISOString();
@@ -33,5 +30,14 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+
+// notFound handler
+app.all('*', (req, res, next) => {
+  // express will know it's passing an error,
+  // so it will skip all routes instead of the error handler.
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`));
+});
+
+app.use(globalErrorHandler);
 
 module.exports = app;
