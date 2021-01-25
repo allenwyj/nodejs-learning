@@ -34,7 +34,7 @@ app.use('/api/v1/users', userRouter);
 // notFound handler
 app.all('*', (req, res, next) => {
   // express will know it's passing an error,
-  // so it will skip all routes instead of the error handler.
+  // so it will skip all routes except the error handler.
   next(new AppError(`Can't find ${req.originalUrl} on this server!`));
 });
 
