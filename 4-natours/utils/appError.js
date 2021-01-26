@@ -4,6 +4,7 @@ class AppError extends Error {
 
     this.statusCode = statusCode;
     this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
+    // indicating the error is not a programming error or unknown error.
     this.isOperational = true;
 
     // Won't pollute the original error.stack,
