@@ -10,7 +10,6 @@ const sendErrorDev = (err, res) => {
 };
 
 const sendErrorProd = (err, res) => {
-  console.log(err);
   // Only send error message if it is not caused by operational error.
   if (err.isOperational) {
     res.status(err.statusCode).json({
@@ -36,6 +35,14 @@ const handleCastErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
+const handleDuplicateFieldsDB = (err) => {
+  // get keys in err.keyValue, it might change due to different field name in schema.
+  const value = err.keyValue[Object.keys(err.keyValue)[0]];
+
+  const message = `Duplicate field value: "${value}". Please use another value.`;
+  return new AppError(message, 400);
+};
+
 // By specifying four parameters, express.js will know it is the error handler.
 const globalErrorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
@@ -45,6 +52,11 @@ const globalErrorHandler = (err, req, res, next) => {
   } else if (process.env.NODE_ENV === 'production') {
     // Mongoose cast error: invalid ObjectId
     if (err.name === 'CastError') err = handleCastErrorDB(err);
+
+    // Mongoose duplicate key/fields error
+    if (err.code === 11000) {
+      err = handleDuplicateFieldsDB(err);
+    }
 
     sendErrorProd(err, res);
   }
