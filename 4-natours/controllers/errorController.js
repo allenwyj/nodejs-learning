@@ -43,6 +43,13 @@ const handleDuplicateFieldsDB = (err) => {
   return new AppError(message, 400);
 };
 
+const handleValidationErrorDB = (err) => {
+  const errors = Object.values(err.errors).map((el) => el.message);
+
+  const message = `Invalid input data: ${errors.join('. ')}`;
+  return new AppError(message, 400);
+};
+
 // By specifying four parameters, express.js will know it is the error handler.
 const globalErrorHandler = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
@@ -54,9 +61,10 @@ const globalErrorHandler = (err, req, res, next) => {
     if (err.name === 'CastError') err = handleCastErrorDB(err);
 
     // Mongoose duplicate key/fields error
-    if (err.code === 11000) {
-      err = handleDuplicateFieldsDB(err);
-    }
+    if (err.code === 11000) err = handleDuplicateFieldsDB(err);
+
+    // // Mongoose validation error
+    if (err.name === 'ValidationError') err = handleValidationErrorDB(err);
 
     sendErrorProd(err, res);
   }
