@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server",
     "server": "nodemon server",
+    "server:prod": "NODE_ENV=production nodemon server.js",
     "debug": "ndb server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
