@@ -33,6 +33,7 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords are not the same.',
     },
   },
+  passwordChangedAt: Date,
 });
 
 // instance method - available on all documents in this collection
@@ -43,6 +44,19 @@ userSchema.methods.matchPassword = async function (
 ) {
   // compare the encrypted passwords
   return await bcrypt.compare(enteredPassword, userPassword);
+};
+
+userSchema.methods.changedPasswordAfterTokenIssued = function (JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    // convert date to (milliseconds / 1000)
+    const changedTimestamp = this.passwordChangedAt.getTime() / 1000;
+
+    // true: password has been changed after the last token was issued.
+    return JWTTimestamp < changedTimestamp;
+  }
+
+  // Password not changed
+  return false;
 };
 
 userSchema.pre('save', async function (next) {
