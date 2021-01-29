@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
@@ -39,6 +40,30 @@ const userSchema = new mongoose.Schema({
     },
   },
   passwordChangedAt: Date,
+  passwordResetToken: String,
+  passwordResetExpires: Date,
+});
+
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+
+  // Hash the password with cost of 12
+  this.password = await bcrypt.hash(this.password, 12);
+
+  // delete this field after password creating or updating successfully.
+  this.passwordConfirm = undefined;
+
+  next();
+});
+
+userSchema.pre('save', function (next) {
+  // Return if it isn't modifying the password or the document is newly created.
+  if (!this.isModified('password') || this.isNew) return next();
+
+  // To minify the problem that the timestamp of the new issued token < passwordChangedAt.
+  // Should be: new issued token > passwordChangedAt
+  this.passwordChangedAt = Date.now() - 1000;
+  next();
 });
 
 // instance method - available on all documents in this collection
@@ -64,17 +89,25 @@ userSchema.methods.changedPasswordAfterTokenIssued = function (JWTTimestamp) {
   return false;
 };
 
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+// NOTE: Running this instance method is only to modify fields, but
+// the changes are not saved.
+userSchema.methods.createPasswordResetToken = function () {
+  // Generate a random token which is like a temporary password for user
+  // to gain access to our server and reset their password.
+  // It should not be stored as a plain token in the database - needs encrypted.
+  const resetToken = crypto.randomBytes(32).toString('hex');
 
-  // Hash the password with cost of 12
-  this.password = await bcrypt.hash(this.password, 12);
+  // Store the encrypted token in the current document
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
 
-  // delete this field after password creating or updating successfully.
-  this.passwordConfirm = undefined;
+  // expires in 10 mins
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
 
-  next();
-});
+  return resetToken;
+};
 
 const User = mongoose.model('User', userSchema);
 
