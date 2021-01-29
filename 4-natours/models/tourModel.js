@@ -79,6 +79,28 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+/*
+// pre-save hook
+tourSchema.pre('save', (next) => {
+  console.log('Will save document...');
+  next();
+});
+
+// runs after .save() and .create()
+// post-save middleware has document and next as the parameters in the cb.
+tourSchema.post('save', (doc, next) => {
+  console.log(doc);
+  next();
+});
+
+// post-find middleware passes the documents into the cb,
+// where the documents are the outcome after the query executed
+tourSchema.post(/^find/, (docs, next) => {
+  console.log(docs);
+  next();
+});
+ */
+
 // create a virtual property
 tourSchema.virtual('durationWeeks').get(function () {
   // this points to the current document
@@ -94,32 +116,12 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
-// // pre-save hook
-// tourSchema.pre('save', (next) => {
-//   console.log('Will save document...');
-//   next();
-// });
-
-// // runs after .save() and .create()
-// // post-save middleware has document and next as the parameters in the cb.
-// tourSchema.post('save', (doc, next) => {
-//   console.log(doc);
-//   next();
-// });
-
 // QUERY MIDDLEWARE:
 // executes before the .find() query excutes
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
   next();
 });
-
-// // post-find middleware passes the documents into the cb,
-// // where the documents are the outcome after the query executed
-// tourSchema.post(/^find/, (docs, next) => {
-//   console.log(docs);
-//   next();
-// });
 
 // AGGREGATION MIDDLEWARE
 tourSchema.pre('aggregate', function (next) {
