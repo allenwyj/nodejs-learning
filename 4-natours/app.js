@@ -1,5 +1,6 @@
 const express = require('express');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controllers/errorController');
@@ -8,7 +9,7 @@ const userRouter = require('./routes/userRoutes');
 
 const app = express();
 
-// MIDDLEWARES
+// GLOBAL MIDDLEWARES
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 
@@ -16,6 +17,16 @@ if (process.env.NODE_ENV === 'development') {
     res.send('API is running...');
   });
 }
+
+// Limiting no. of requests from the same IP
+const limiter = rateLimit({
+  max: 100, // 100 requests per IP
+  windowMs: 3600000, // 1 hr
+  message: 'Too many requests from your IP, please try again in an hour!',
+});
+
+// only applies to /api/xxx/xxx
+app.use('/api', limiter);
 
 // allows to access req.body data from the request
 // It parses incoming requests with JSON payloads and is based on body-parser.
