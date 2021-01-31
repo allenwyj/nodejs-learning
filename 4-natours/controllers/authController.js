@@ -13,6 +13,23 @@ const generateToken = (id) =>
 
 const createSendToken = (user, statusCode, res) => {
   const token = generateToken(user._id);
+  const cookieOptions = {
+    // telling the clients when this cookie will be expired and can be deleted.
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    // Cookie cannot be accessed or modified in anyway by the browser
+    httpOnly: true,
+  };
+
+  // Cookie is sent in HTTPS
+  if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+
+  // Define the cookie
+  res.cookie('jwt', token, cookieOptions);
+
+  // Remove the password from the creation output, but not deleting from the DB
+  user.password = undefined;
 
   res.status(statusCode).json({
     status: 'success',
@@ -44,21 +61,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
     passwordConfirm: req.body.passwordConfirm,
   });
 
-  // secret key should be more than 32 characters
-  const token = generateToken(newUser._id);
-
-  res.status(201).json({
-    status: 'success',
-    token,
-    data: {
-      // excluding password field
-      user: {
-        _id: newUser._id,
-        name: newUser.name,
-        email: newUser.email,
-      },
-    },
-  });
+  createSendToken(newUser, 201, res);
 });
 
 // @desc    Login a user
@@ -82,13 +85,7 @@ exports.login = catchAsync(async (req, res, next) => {
   }
 
   // 3) If everything ok, send token to the client
-  // Giving an new token to the client
-  const token = generateToken(user._id);
-
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+  createSendToken(user, 200, res);
 });
 
 exports.protect = catchAsync(async (req, res, next) => {
@@ -222,12 +219,7 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   // 4) Log the user in, send JWT
-  const token = generateToken(user._id);
-
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+  createSendToken(user, 200, res);
 });
 
 // @desc    Update user's password
@@ -263,10 +255,5 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   await user.save();
 
   // 4) Log the user in, send JWT
-  const token = generateToken(user._id);
-
-  res.status(200).json({
-    status: 'success',
-    token,
-  });
+  createSendToken(user, 200, res);
 });
