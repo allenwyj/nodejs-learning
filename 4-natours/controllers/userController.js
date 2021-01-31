@@ -11,6 +11,9 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
+// @desc    Get all users
+// @route   GET /api/v1/users
+// @access  Public
 exports.getAllUsers = catchAsync(async (req, res, next) => {
   const users = await User.find();
 
@@ -24,6 +27,9 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   });
 });
 
+// @desc    Update a user, user id will be decoded from protect middleware
+// @route   GET /api/v1/users/update-me
+// @access  Private
 exports.updateMe = catchAsync(async (req, res, next) => {
   // 1) Send error if user POSTs password data
   if (req.body.password || req.body.passwordConfirm) {
@@ -49,6 +55,19 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     data: {
       user: updatedUser,
     },
+  });
+});
+
+// @desc    Delete a user, user id will be decoded from protect middleware
+// @route   GET /api/v1/users/delete-me
+// @access  Private
+exports.deleteMe = catchAsync(async (req, res, next) => {
+  // Not actually deleting the user, setting to inactive user instead.
+  await User.findByIdAndUpdate(req.user._id, { active: false });
+
+  res.status(204).json({
+    status: 'success',
+    data: null,
   });
 });
 
