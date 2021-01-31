@@ -43,6 +43,12 @@ const userSchema = new mongoose.Schema({
   passwordChangedAt: Date,
   passwordResetToken: String,
   passwordResetExpires: Date,
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+    require: [true, 'A user must be active or inactive'],
+  },
 });
 
 // Instance method - hashing password before saving into the DB
@@ -66,6 +72,16 @@ userSchema.pre('save', function (next) {
   // To minify the problem that the timestamp of the new issued token < passwordChangedAt.
   // Should be: new issued token > passwordChangedAt
   this.passwordChangedAt = Date.now() - 1000;
+
+  next();
+});
+
+// Query middleware - any query starts with find
+// Only find the active user.
+userSchema.pre(/^find/, function (next) {
+  // this points to the current query
+  this.find({ active: { $ne: false } });
+
   next();
 });
 
