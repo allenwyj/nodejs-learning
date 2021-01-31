@@ -32,6 +32,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'A user must confirm the password'],
     validate: {
       // This only works on .create() and .save()
+      // Doesn't work with findXXXAndUpdate()
       validator: function (currentField) {
         // getting the current field as parameter
         return currentField === this.password;
@@ -44,7 +45,9 @@ const userSchema = new mongoose.Schema({
   passwordResetExpires: Date,
 });
 
+// Instance method - hashing password before saving into the DB
 userSchema.pre('save', async function (next) {
+  // Returns if it is not modifying the password
   if (!this.isModified('password')) return next();
 
   // Hash the password with cost of 12
@@ -76,6 +79,8 @@ userSchema.methods.matchPassword = async function (
   return await bcrypt.compare(enteredPassword, userPassword);
 };
 
+// instance method - validating the token.
+// Returns true if token is newer than the timestamp of password changed
 userSchema.methods.changedPasswordAfterTokenIssued = function (JWTTimestamp) {
   if (this.passwordChangedAt) {
     // convert date to (milliseconds / 1000)

@@ -11,6 +11,27 @@ const generateToken = (id) =>
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
 
+const createSendToken = (user, statusCode, res) => {
+  const token = generateToken(user._id);
+
+  res.status(statusCode).json({
+    status: 'success',
+    token,
+    data: {
+      user,
+    },
+  });
+};
+
+exports.restrictTo = (...roles) =>
+  catchAsync(async (req, res, next) => {
+    // Check if user.role is included in roles
+    if (!roles.includes(req.user.role)) {
+      return next(new AppError('Permission denied.', 403));
+    }
+    next();
+  });
+
 // @desc    Sign up a user
 // @route   GET /api/v1/users/signup
 // @access  Public
@@ -120,15 +141,9 @@ exports.protect = catchAsync(async (req, res, next) => {
   next();
 });
 
-exports.restrictTo = (...roles) =>
-  catchAsync(async (req, res, next) => {
-    // Check if user.role is included in roles
-    if (!roles.includes(req.user.role)) {
-      return next(new AppError('Permission denied.', 403));
-    }
-    next();
-  });
-
+// @desc    Forgot password, send a reset link to user's email address
+// @route   GET /api/v1/users/forgot-password
+// @access  Public
 exports.forgotPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on POSTed email
   const user = await User.findOne({ email: req.body.email });
@@ -179,6 +194,9 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
+// @desc    Reset password
+// @route   GET /api/v1/users/reset-password
+// @access  Public
 exports.resetPassword = catchAsync(async (req, res, next) => {
   // 1) Get user based on the token
   const hashToken = crypto
@@ -196,13 +214,54 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     return next(new AppError('Token is invalid or has expired', 400));
   }
 
+  // 3) Update changedPasswordAt field for the user
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
 
-  // 3) Update changedPasswordAt field for the user
+  // 4) Log the user in, send JWT
+  const token = generateToken(user._id);
+
+  res.status(200).json({
+    status: 'success',
+    token,
+  });
+});
+
+// @desc    Update user's password
+// @route   GET /api/v1/users/update-my-password
+// @access  Private
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  // 1) Get user from the collection
+  // Assuming that user is logged in, and passed the protect route.
+  const user = await User.findById(req.user.id).select('+password');
+
+  // 2) Check if POSTed current password is correct
+  if (!user) {
+    return next(
+      new AppError(
+        'Sorry, the current user is no longer existing in the system.',
+        400
+      )
+    );
+  }
+
+  if (!(await user.matchPassword(req.body.currentPassword, user.password))) {
+    return next(
+      new AppError('Sorry, the current password is not matched.'),
+      401
+    );
+  }
+
+  // 3) Update password
+  user.password = req.body.newPassword;
+  user.passwordConfirm = req.body.newPasswordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save();
+
   // 4) Log the user in, send JWT
   const token = generateToken(user._id);
 
