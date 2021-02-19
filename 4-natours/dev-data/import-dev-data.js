@@ -9,7 +9,7 @@ connectDB();
 
 // READ JSON FILE
 const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/data/tours-simple.json`, 'utf-8')
+  fs.readFileSync(`${__dirname}/data/tours.json`, 'utf-8')
 );
 
 // IMPORT DATA INTO DB
@@ -37,6 +37,6 @@ const deleteData = async () => {
 
 if (process.argv[2] === '--d') {
   deleteData();
-} else {
+} else if (process.argv[2] === '--i') {
   importData();
 }
