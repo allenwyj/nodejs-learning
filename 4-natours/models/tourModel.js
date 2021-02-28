@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+//const User = require('./userModel');
 
 // Create schema
 const tourSchema = new mongoose.Schema(
@@ -96,6 +97,7 @@ const tourSchema = new mongoose.Schema(
         day: Number,
       },
     ],
+    guides: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
   },
   {
     // show virtual properties
@@ -141,10 +143,38 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+// embedding guides into a tour.
+// tourSchema.pre('save', async function (next) {
+//   // returning promises
+//   const guidesPromises = this.guides.map(async (id) => await User.findById(id));
+
+//   this.guides = await Promise.all(guidesPromises);
+//   next();
+// });
+
 // QUERY MIDDLEWARE:
 // executes before the .find() query excutes
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
+
+  this.start = Date.now();
+  next();
+});
+
+// Expanding guides field - so it will use the reference to query back
+// the details of guides, excluding __v and passwordChangeAt fields.
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -passwordChangeAt',
+  });
+
+  next();
+});
+
+// Calculating the time for querying.
+tourSchema.post(/^find/, function (docs, next) {
+  console.log(`Query took ${Date.now() - this.start} milliseconds!`);
   next();
 });
 

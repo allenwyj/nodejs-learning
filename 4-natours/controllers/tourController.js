@@ -36,6 +36,16 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
 exports.getTourById = catchAsync(async (req, res, next) => {
   const tourId = req.params.id;
   const tour = await Tour.findById(tourId);
+
+  /* MOVED TO TOUR MODEL - QUERY MIDDLEWARE
+  // Expanding guides field - so it will use the reference to query back
+  // the details of guides, excluding __v and passwordChangeAt fields.
+  const tour = await Tour.findById(tourId).populate({
+    path: 'guides',
+    select: '-__v -passwordChangeAt',
+  }); 
+  */
+
   // shorthand to this: Tour.findOne({ _id: tourId })
 
   if (!tour) {
