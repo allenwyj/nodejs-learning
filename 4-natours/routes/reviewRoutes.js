@@ -5,8 +5,12 @@ const {
   createReview,
 } = require('../controllers/reviewController');
 
-const router = express.Router();
+// mergeParams allows to access the params from other routers
+const router = express.Router({ mergeParams: true });
 
+// By using merge parameter, this router can be accessed by:
+// /api/v1/reviews
+// /api/v1/tours/:tourId/reviews
 router
   .route('/')
   .get(getAllReviews)
