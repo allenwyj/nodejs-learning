@@ -134,6 +134,16 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// Virtual Populate:
+// foreignField - the foreign key in the Review model
+// localField - the primary key in the Tour model
+// Just like the way in MySQL
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField: 'tour', // FK
+  localField: '_id', // PK
+});
+
 // DOCUMENT MIDDLEWARE:
 // runs before .save() and .create()
 // pre-save middleware has next as the parameter in the cb.

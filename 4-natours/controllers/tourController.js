@@ -35,7 +35,7 @@ exports.getAllTours = catchAsync(async (req, res, next) => {
 
 exports.getTourById = catchAsync(async (req, res, next) => {
   const tourId = req.params.id;
-  const tour = await Tour.findById(tourId);
+  const tour = await Tour.findById(tourId).populate('reviews');
 
   /* MOVED TO TOUR MODEL - QUERY MIDDLEWARE
   // Expanding guides field - so it will use the reference to query back
