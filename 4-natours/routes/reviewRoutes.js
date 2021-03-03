@@ -3,6 +3,7 @@ const { protect, restrictTo } = require('../controllers/authController');
 const {
   getAllReviews,
   createReview,
+  deleteReviewById,
 } = require('../controllers/reviewController');
 
 // mergeParams allows to access the params from other routers
@@ -15,5 +16,7 @@ router
   .route('/')
   .get(getAllReviews)
   .post(protect, restrictTo('user'), createReview);
+
+router.route('/:id').delete(deleteReviewById);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const User = require('../models/userModel');
 const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
+const factory = require('./handlerFactory');
 
 // Filtered out any key:value pair if it is not in allowedFields
 const filterObj = (obj, ...allowedFields) => {
@@ -71,20 +72,12 @@ exports.deleteMe = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getUserById = catchAsync(async (req, res, next) => {
-  // const tourId = req.params.id;
-  // const tour = await Tour.findById(tourId);
-  // // shorthand to this: Tour.findOne({ _id: tourId })
-  // if (!tour) {
-  //   return next(new AppError('No tour found with that ID', 404));
-  // }
-  // res.status(200).json({
-  //   status: 'success',
-  //   data: {
-  //     tour,
-  //   },
-  // });
-});
+exports.getUserById = (req, res) => {
+  res.status(500).json({
+    status: 'error',
+    message: 'This route is not yet defined',
+  });
+};
 
 exports.createUser = (req, res) => {
   res.status(500).json({
@@ -100,9 +93,4 @@ exports.updateUserById = (req, res) => {
   });
 };
 
-exports.deleteUserById = (req, res) => {
-  res.status(500).json({
-    status: 'error',
-    message: 'This route is not yet defined',
-  });
-};
+exports.deleteUserById = factory.deleteOne(User);
