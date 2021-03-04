@@ -35,3 +35,16 @@ exports.updateOne = (Model) =>
       },
     });
   });
+
+exports.createOne = (Model) =>
+  catchAsync(async (req, res, next) => {
+    // Calling method of the model
+    const doc = await Model.create(req.body);
+
+    res.status(201).json({
+      status: 'success',
+      data: {
+        data: doc,
+      },
+    });
+  });
