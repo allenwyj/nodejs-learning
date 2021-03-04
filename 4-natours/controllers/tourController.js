@@ -1,6 +1,4 @@
 const Tour = require('../models/tourModel');
-const APIFeatures = require('../utils/apiFeatures');
-const AppError = require('../utils/appError');
 const catchAsync = require('../utils/catchAsync');
 const factory = require('./handlerFactory');
 
@@ -13,55 +11,11 @@ exports.aliasTopTours = async (req, res, next) => {
   next();
 };
 
-exports.getAllTours = catchAsync(async (req, res, next) => {
-  // BUILD QUERY
-  const features = new APIFeatures(Tour.find(), req.query)
-    .filter()
-    .sort()
-    .limit()
-    .pagination();
-
-  // EXECUTE QUERY
-  const tours = await features.query;
-
-  // SEND RESPONSE
-  res.status(200).json({
-    status: 'success',
-    results: tours.length,
-    data: {
-      tours,
-    },
-  });
-});
-
-exports.getTourById = catchAsync(async (req, res, next) => {
-  const tourId = req.params.id;
-  const tour = await Tour.findById(tourId).populate('reviews');
-
-  /* MOVED TO TOUR MODEL - QUERY MIDDLEWARE
-  // Expanding guides field - so it will use the reference to query back
-  // the details of guides, excluding __v and passwordChangeAt fields.
-  const tour = await Tour.findById(tourId).populate({
-    path: 'guides',
-    select: '-__v -passwordChangeAt',
-  }); 
-  */
-
-  // shorthand to this: Tour.findOne({ _id: tourId })
-
-  if (!tour) {
-    return next(new AppError('No tour found with that ID', 404));
-  }
-
-  res.status(200).json({
-    status: 'success',
-    data: {
-      tour,
-    },
-  });
-});
-
 exports.createTour = factory.createOne(Tour);
+
+exports.getTourById = factory.getOne(Tour, { path: 'reviews' });
+
+exports.getAllTours = factory.getAll(Tour);
 
 exports.updateTourById = factory.updateOne(Tour);
 
