@@ -3,6 +3,7 @@ const { protect, restrictTo } = require('../controllers/authController');
 const {
   getAllReviews,
   createReview,
+  updateReviewById,
   deleteReviewById,
 } = require('../controllers/reviewController');
 
@@ -17,6 +18,6 @@ router
   .get(getAllReviews)
   .post(protect, restrictTo('user'), createReview);
 
-router.route('/:id').delete(deleteReviewById);
+router.route('/:id').patch(updateReviewById).delete(deleteReviewById);
 
 module.exports = router;
