@@ -106,6 +106,12 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+// Setting indexes
+// 1 - ascending
+// -1 - deascending
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+
 /*
 // pre-save hook
 tourSchema.pre('save', (next) => {
