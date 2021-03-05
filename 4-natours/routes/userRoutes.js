@@ -1,6 +1,7 @@
 const express = require('express');
 const {
   protect,
+  restrictTo,
   signUp,
   login,
   forgotPassword,
@@ -26,11 +27,17 @@ router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
 router.patch('/reset-password/:token', resetPassword);
 
-router.patch('/update-my-password', protect, updatePassword);
+// Adding a middleware - any request hitting the rest of routes,
+// will need to pass this protect middleware first.
+// Protecting the all routes after this point.
+router.use(protect);
 
-router.get('/me', protect, getMe, getUserById);
-router.patch('/update-me', protect, updateMe);
-router.delete('/delete-me', protect, deleteMe);
+router.patch('/update-my-password', updatePassword);
+router.get('/me', getMe, getUserById);
+router.patch('/update-me', updateMe);
+router.delete('/delete-me', deleteMe);
+
+router.use(restrictTo('admin'));
 
 router.route('/').get(getAllUsers).post(createUser);
 
