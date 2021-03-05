@@ -12,6 +12,12 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
+exports.getMe = (req, res, next) => {
+  req.params.id = req.user.id;
+
+  next();
+};
+
 // @desc    Update a user, user id will be decoded from protect middleware
 // @route   GET /api/v1/users/update-me
 // @access  Private

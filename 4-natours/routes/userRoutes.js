@@ -8,6 +8,7 @@ const {
   updatePassword,
 } = require('../controllers/authController');
 const {
+  getMe,
   getAllUsers,
   getUserById,
   createUser,
@@ -27,6 +28,7 @@ router.patch('/reset-password/:token', resetPassword);
 
 router.patch('/update-my-password', protect, updatePassword);
 
+router.get('/me', protect, getMe, getUserById);
 router.patch('/update-me', protect, updateMe);
 router.delete('/delete-me', protect, deleteMe);
 
