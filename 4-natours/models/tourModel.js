@@ -197,12 +197,12 @@ tourSchema.post(/^find/, function (docs, next) {
 });
 
 // AGGREGATION MIDDLEWARE
-tourSchema.pre('aggregate', function (next) {
+/* tourSchema.pre('aggregate', function (next) {
   // this points to the aggregate object, and we focus on
   // the aggregate pipeline object, and add the new match into the start of array.
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
   next();
-});
+}); */
 
 // Create model
 const Tour = mongoose.model('Tour', tourSchema);
