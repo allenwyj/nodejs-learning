@@ -1,0 +1,22 @@
+doctype html
+html
+  head 
+    //- template string in pug
+    title Natours #{tour}
+    link(rel='stylesheet' href='css/style.css')
+    link(rel='shortcut icon' type='image/png' href='img/favicon.png')
+
+  body 
+    // this comment will be added into html.
+    //- this comment will not be added into html.
+
+    //- buffered code
+    //- everything after = will be treated as JS code.
+    h1= tour 
+    h2= user.toUpperCase()
+
+    //- unbuffered code
+    - const x = 9;
+    h2= 2 * x 
+
+    p This is just some text
